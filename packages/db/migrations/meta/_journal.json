@@ -64,6 +64,13 @@
       "when": 1792511237412,
       "tag": "0008_goofy_hellcat",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792511817355,
+      "tag": "0009_unknown_quentin_quire",
+      "breakpoints": true
     }
   ]
 }

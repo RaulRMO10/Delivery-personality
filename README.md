@@ -10,7 +10,9 @@ Visão completa: [docs/VISAO-GERAL.md](docs/VISAO-GERAL.md).
 |---|---|
 | `apps/web` | Loja e painel (Next.js 16, Tailwind, better-auth) |
 | `packages/core` | Regras de negócio compartilhadas: perfis, permissões, módulos |
+| `apps/worker` | Processo sempre ligado da integração com o iFood ([docs/IFOOD.md](docs/IFOOD.md)) |
 | `packages/db` | Esquema do banco e migrações (Drizzle + PostgreSQL) |
+| `packages/ifood` | Cliente da API do iFood e conversão de pedidos |
 
 ## Configuração
 

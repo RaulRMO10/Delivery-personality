@@ -9,7 +9,7 @@ const cabecalhosDeSeguranca = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@delivery/core", "@delivery/db"],
+  transpilePackages: ["@delivery/core", "@delivery/db", "@delivery/ifood"],
   poweredByHeader: false,
   turbopack: {
     rules: {

@@ -44,6 +44,8 @@ export const pedidos = pgTable(
     canal: text({ enum: ["site", "whatsapp", "telefone", "ifood", "99food"] }).notNull(),
     idExterno: text(),
     codigoExterno: text(),
+    /** Entrega feita pela logística do canal (ex.: entregador do iFood). */
+    entregaPeloParceiro: boolean().notNull().default(false),
     clienteId: uuid().references(() => clientes.id, { onDelete: "set null" }),
     nomeCliente: text().notNull(),
     telefoneCliente: text(),

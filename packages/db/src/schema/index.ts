@@ -5,3 +5,4 @@ export * from "./cardapio";
 export * from "./loja";
 export * from "./pedidos";
 export * from "./marketing";
+export * from "./integracoes";

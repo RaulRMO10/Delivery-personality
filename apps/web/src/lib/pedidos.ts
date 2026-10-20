@@ -1,5 +1,6 @@
 import "server-only";
 import { pedidoEncerrado, perfilPodeMudarStatus, type Perfil, type StatusPedido } from "@delivery/core";
+import { acaoParaStatus } from "@delivery/ifood";
 import { and, asc, db, desc, eq, inArray, schema, sql } from "@delivery/db";
 
 export type Pedido = typeof schema.pedidos.$inferSelect;
@@ -59,14 +60,6 @@ export async function ultimosPedidosDoCliente(clienteId: string, limite = 20) {
   return db.select().from(schema.pedidos).where(eq(schema.pedidos.clienteId, clienteId)).orderBy(desc(schema.pedidos.criadoEm)).limit(limite);
 }
 
-type Observador = (pedido: Pedido, de: StatusPedido, para: StatusPedido) => Promise<void>;
-const observadores: Observador[] = [];
-
-/** Registra uma reação a mudanças de etapa (ex.: avisar o iFood). */
-export function aoMudarStatus(observador: Observador) {
-  observadores.push(observador);
-}
-
 export type ResultadoMudanca = { ok: true; pedido: Pedido } | { ok: false; mensagem: string };
 
 /**
@@ -108,18 +101,20 @@ export async function mudarStatusPedido(opcoes: {
       usuarioId: opcoes.usuario?.id ?? null,
       observacao: opcoes.para === "cancelado" ? opcoes.motivo!.trim().slice(0, 300) : null,
     });
+    // Pedido do iFood: a mudança feita no painel vai para a fila de envio (processada pelo worker).
+    if (!opcoes.externo && atualizado.canal === "ifood") {
+      const acao = acaoParaStatus(opcoes.para, atualizado.entregaPeloParceiro);
+      if (acao) {
+        await tx.insert(schema.comandosIntegracao).values({
+          canal: "ifood",
+          pedidoId: atualizado.id,
+          acao,
+          payload: acao === "cancelar" ? { motivo: opcoes.motivo!.trim().slice(0, 250) } : null,
+        });
+      }
+    }
     return atualizado;
   });
   if (!pedido) return { ok: false, mensagem: "O pedido foi alterado por outra pessoa. Atualize a tela." };
-
-  if (!opcoes.externo) {
-    for (const observador of observadores) {
-      try {
-        await observador(pedido, de, opcoes.para);
-      } catch (erro) {
-        console.error("Falha ao notificar mudança de etapa", erro);
-      }
-    }
-  }
   return { ok: true, pedido };
 }
