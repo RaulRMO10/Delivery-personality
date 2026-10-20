@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { NOME_PERFIL, descreverStatus, modulosDoPerfil, podeOperarLoja } from "@delivery/core";
 import { exigirUsuario } from "@/lib/sessao";
@@ -5,6 +6,11 @@ import { calcularStatus, obterConfiguracao } from "@/lib/loja";
 import { BarraInferior, MenuLateral } from "@/components/painel/navegacao";
 import { MenuUsuario } from "@/components/painel/menu-usuario";
 import { StatusLoja, type SituacaoLoja } from "@/components/painel/status-loja";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { nome } = await obterConfiguracao();
+  return { title: { default: `Painel · ${nome}`, template: `%s · ${nome}` }, robots: { index: false } };
+}
 
 export default async function LayoutPainel({ children }: LayoutProps<"/painel">) {
   const usuario = await exigirUsuario();

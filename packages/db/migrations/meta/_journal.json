@@ -29,6 +29,13 @@
       "when": 1792508359575,
       "tag": "0003_foamy_killmonger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792508969504,
+      "tag": "0004_wooden_tombstone",
+      "breakpoints": true
     }
   ]
 }

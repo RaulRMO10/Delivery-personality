@@ -3,3 +3,4 @@ export * from "./atividades";
 export * from "./receitas";
 export * from "./cardapio";
 export * from "./loja";
+export * from "./pedidos";
