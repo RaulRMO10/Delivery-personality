@@ -96,6 +96,8 @@ export const pedidoItens = pgTable(
     quantidade: integer().notNull(),
     observacao: text(),
     opcoes: jsonb().$type<{ grupo: string; opcao: string; quantidade: number; precoAdicional: number }[]>().notNull().default([]),
+    /** Escolhas originais (ids), usadas para repetir o pedido. */
+    escolhas: jsonb().$type<{ grupoId: string; opcaoId: string; quantidade: number }[]>().notNull().default([]),
     ordem: integer().notNull().default(0),
   },
   (t) => [index().on(t.pedidoId), index().on(t.produtoId), check("pedido_itens_quantidade_positiva", sql`${t.quantidade} > 0`)],

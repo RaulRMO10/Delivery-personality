@@ -44,6 +44,7 @@ const esquema = z
     hora: z.string().optional(),
     formaPagamento: z.enum(["pix", "pix_online", "dinheiro", "cartao"]),
     canal: z.enum(["site", "whatsapp", "telefone"]).default("site"),
+    aceitaMarketing: z.boolean().default(false),
     trocoPara: z.string().optional(),
     observacao: z.string().trim().max(300).optional(),
     itens: z
@@ -147,8 +148,9 @@ export async function criarPedido(dados: DadosPedido): Promise<ResultadoPedido> 
   const pedido = await db.transaction(async (tx) => {
     const [cliente] = await tx
       .insert(schema.clientes)
-      .values({ nome: d.nome, telefone: d.telefone })
-      .onConflictDoUpdate({ target: schema.clientes.telefone, set: { nome: d.nome } })
+      .values({ nome: d.nome, telefone: d.telefone, aceitaMarketing: d.aceitaMarketing })
+      // O consentimento só é concedido aqui; a retirada é feita pelo atendimento (aba Clientes).
+      .onConflictDoUpdate({ target: schema.clientes.telefone, set: { nome: d.nome, ...(d.aceitaMarketing ? { aceitaMarketing: true } : {}) } })
       .returning({ id: schema.clientes.id });
 
     const [novo] = await tx
@@ -187,6 +189,7 @@ export async function criarPedido(dados: DadosPedido): Promise<ResultadoPedido> 
         quantidade: item.quantidade,
         observacao: item.observacao,
         opcoes: item.opcoes,
+        escolhas: item.escolhas,
         ordem,
       })),
     );

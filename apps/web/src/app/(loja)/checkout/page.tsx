@@ -9,8 +9,9 @@ import { Checkout } from "./checkout";
 
 export const metadata: Metadata = { title: "Finalizar pedido" };
 
-export default async function PaginaCheckout() {
+export default async function PaginaCheckout({ searchParams }: PageProps<"/checkout">) {
   await connection();
+  const { aviso } = await searchParams;
   const [config, bairros] = await Promise.all([
     obterConfiguracao(),
     db.select({ id: schema.bairros.id, nome: schema.bairros.nome, taxa: schema.bairros.taxa }).from(schema.bairros).where(eq(schema.bairros.ativo, true)).orderBy(asc(schema.bairros.nome)),
@@ -21,6 +22,7 @@ export default async function PaginaCheckout() {
   return (
     <Checkout
       operador={usuario !== null && podeOperarLoja(usuario.perfil)}
+      avisoIndisponiveis={aviso === "indisponiveis"}
       aberta={calcularStatus(config).aberta}
       bairros={bairros}
       aceitaRetirada={config.aceitaRetirada}

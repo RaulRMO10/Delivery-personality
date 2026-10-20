@@ -43,6 +43,13 @@
       "when": 1792509930712,
       "tag": "0005_mighty_talos",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792510377894,
+      "tag": "0006_watery_black_tom",
+      "breakpoints": true
     }
   ]
 }

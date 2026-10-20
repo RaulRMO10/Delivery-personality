@@ -53,6 +53,8 @@ const DESCRICAO_ACAO: Record<string, string> = {
   "pedido.cancelado": "Cancelou pedido",
   "pedido.pago": "Registrou pagamento",
   "pagamentos.salvos": "Alterou formas de pagamento",
+  "cliente.atualizado": "Alterou cliente",
+  "cliente.dados_excluidos": "Excluiu dados de cliente",
 };
 
 export default async function PaginaAtividades() {

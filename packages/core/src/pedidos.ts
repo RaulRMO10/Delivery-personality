@@ -128,6 +128,7 @@ export interface ItemCalculado {
   total: number;
   observacao: string | null;
   opcoes: { grupo: string; opcao: string; quantidade: number; precoAdicional: number }[];
+  escolhas: Escolha[];
 }
 
 export interface Desconto {
@@ -183,6 +184,7 @@ export function calcularPedido(carrinho: readonly ItemCarrinho[], produtos: Read
       precoUnitario,
       total: precoUnitario * item.quantidade,
       observacao: item.observacao?.trim() ? item.observacao.trim().slice(0, 200) : null,
+      escolhas: item.escolhas.map((e) => ({ grupoId: e.grupoId, opcaoId: e.opcaoId, quantidade: e.quantidade })),
       opcoes: item.escolhas.map((e) => {
         const grupo = produto.grupos.find((g) => g.id === e.grupoId)!;
         const opcao = grupo.opcoes.find((o) => o.id === e.opcaoId)!;

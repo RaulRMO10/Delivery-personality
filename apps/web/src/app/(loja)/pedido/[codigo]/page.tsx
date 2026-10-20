@@ -9,6 +9,7 @@ import { obterConfiguracao } from "@/lib/loja";
 import { mercadoPagoConfigurado, pixDoPedido } from "@/lib/pagamentos";
 import { sincronizarPagamento } from "@/lib/pagamento-online";
 import { PagarPix } from "@/components/loja/pagar-pix";
+import { PedirDeNovo } from "@/components/loja/pedir-de-novo";
 import { cn } from "@/lib/utils";
 import { AtualizacaoAutomatica } from "@/components/loja/atualizacao-automatica";
 
@@ -199,6 +200,8 @@ export default async function PaginaPedido({ params }: PageProps<"/pedido/[codig
             : (config.endereco ?? "no local")}
         </p>
       </section>
+
+      {pedidoEncerrado(status) && <PedirDeNovo codigo={codigo} />}
 
       {whatsapp && (
         <a

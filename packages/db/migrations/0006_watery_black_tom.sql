@@ -1,0 +1,1 @@
+ALTER TABLE "pedido_itens" ADD COLUMN "escolhas" jsonb DEFAULT '[]'::jsonb NOT NULL;

@@ -15,6 +15,8 @@ import { criarPedido } from "./acoes";
 interface Props {
   /** Pessoa da equipe logada: pode lançar pedidos de telefone e WhatsApp. */
   operador: boolean;
+  /** Veio de "Pedir de novo" com itens que ficaram de fora. */
+  avisoIndisponiveis?: boolean;
   aberta: boolean;
   bairros: { id: string; nome: string; taxa: number }[];
   aceitaRetirada: boolean;
@@ -43,7 +45,7 @@ function Opcao({ ativo, onClick, children, disabled }: { ativo: boolean; onClick
   );
 }
 
-export function Checkout({ operador, aberta, bairros, aceitaRetirada, pedidoMinimo, freteGratisAcima, formas, hoje }: Props) {
+export function Checkout({ operador, avisoIndisponiveis, aberta, bairros, aceitaRetirada, pedidoMinimo, freteGratisAcima, formas, hoje }: Props) {
   const [canal, setCanal] = useState<"site" | "whatsapp" | "telefone">(operador ? "whatsapp" : "site");
   const router = useRouter();
   const carrinho = useCarrinho();
@@ -64,6 +66,7 @@ export function Checkout({ operador, aberta, bairros, aceitaRetirada, pedidoMini
   const [forma, setForma] = useState<FormaPagamento>(formas[0] ?? "pix");
   const [troco, setTroco] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [aceitaMarketing, setAceitaMarketing] = useState(false);
 
   // Preenche os dados do último pedido feito neste aparelho (não para a equipe, que lança para vários clientes).
   useEffect(() => {
@@ -108,6 +111,7 @@ export function Checkout({ operador, aberta, bairros, aceitaRetirada, pedidoMini
         hora,
         formaPagamento: forma,
         canal,
+        aceitaMarketing,
         trocoPara: troco,
         observacao,
         itens: carrinho.itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade, escolhas: i.escolhas, observacao: i.observacao })),
@@ -148,6 +152,7 @@ export function Checkout({ operador, aberta, bairros, aceitaRetirada, pedidoMini
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
       <h1 className="text-2xl font-bold">Finalizar pedido</h1>
+      {avisoIndisponiveis && <Aviso>Alguns itens estão indisponíveis e ficaram de fora.</Aviso>}
 
       {operador && (
         <section className="flex flex-col gap-3 rounded-2xl border border-marca-200 bg-marca-50 p-4">
@@ -199,6 +204,10 @@ export function Checkout({ operador, aberta, bairros, aceitaRetirada, pedidoMini
           <Campo rotulo="Nome" value={nome} onChange={(e) => setNome(e.target.value)} autoComplete="name" required />
           <Campo rotulo="Celular (WhatsApp)" value={telefone} onChange={(e) => setTelefone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="(11) 99999-9999" required />
         </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={aceitaMarketing} onChange={(e) => setAceitaMarketing(e.target.checked)} className="size-5 accent-marca-600" />
+          Quero receber promoções pelo WhatsApp
+        </label>
       </section>
 
       <section className="flex flex-col gap-4 rounded-2xl border border-borda bg-superficie p-4">
