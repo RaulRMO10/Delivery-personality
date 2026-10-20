@@ -69,6 +69,8 @@ export const pedidos = pgTable(
     codigoCupom: text(),
     /** O desconto deste pedido foi a recompensa de fidelidade (reinicia a contagem). */
     recompensaFidelidade: boolean().notNull().default(false),
+    /** Baixa de estoque já aplicada (evita baixar duas vezes). */
+    estoqueBaixado: boolean().notNull().default(false),
     observacao: text(),
     motivoCancelamento: text(),
     ip: text(),

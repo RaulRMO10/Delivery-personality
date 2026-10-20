@@ -112,6 +112,27 @@ export function criaCiclo(receitaId: string, subReceitaId: string, receitas: Rea
   return false;
 }
 
+/**
+ * Quantidade de cada insumo consumida para produzir `quantidade` unidades de rendimento
+ * da receita (considera sub-receitas e perda). Usado na baixa de estoque.
+ */
+export function consumoDeInsumos(receitaId: string, quantidade: number, receitas: ReadonlyMap<string, Receita>): Map<string, number> {
+  const consumo = new Map<string, number>();
+  function explodir(id: string, qtd: number, caminho: readonly string[]) {
+    if (caminho.includes(id)) throw new ErroCalculo("Receita usa a si mesma (referência circular).");
+    const receita = receitas.get(id);
+    if (!receita) throw new ErroCalculo("Receita não encontrada.");
+    const fator = qtd / rendimentoEfetivo(receita);
+    for (const item of receita.itens) {
+      const necessario = item.quantidade * fator;
+      if (item.tipo === "insumo") consumo.set(item.insumoId, (consumo.get(item.insumoId) ?? 0) + necessario);
+      else explodir(item.receitaId, necessario, [...caminho, id]);
+    }
+  }
+  explodir(receitaId, quantidade, []);
+  return consumo;
+}
+
 /** Custo em uma unidade de leitura fácil: por kg, por litro ou por unidade. */
 export function custoReferencia(insumo: Pick<Insumo, "unidade" | "quantidadeEmbalagem" | "precoEmbalagem">): {
   valor: number;

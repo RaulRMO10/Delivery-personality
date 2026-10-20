@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ErroCalculo,
   calcularCustoReceita,
+  consumoDeInsumos,
   criaCiclo,
   custoReferencia,
   custoUnitarioInsumo,
@@ -91,6 +92,30 @@ describe("custos", () => {
     expect(() => calcularCustoReceita("brigadeiro", new Map([["brigadeiro", invalida]]), insumos)).toThrow(ErroCalculo);
     const perdaTotal = { ...brigadeiro, perdaPercentual: 100 };
     expect(() => calcularCustoReceita("brigadeiro", new Map([["brigadeiro", perdaTotal]]), insumos)).toThrow(ErroCalculo);
+  });
+});
+
+describe("consumo de insumos", () => {
+  it("calcula o consumo proporcional, com sub-receitas e perda", () => {
+    const massa: Receita = { id: "massa", rendimento: 1000, unidadeRendimento: "g", perdaPercentual: 0, itens: [{ tipo: "insumo", insumoId: "farinha", quantidade: 500 }] };
+    const coxinha: Receita = {
+      id: "coxinha",
+      rendimento: 10,
+      unidadeRendimento: "un",
+      perdaPercentual: 0,
+      itens: [
+        { tipo: "receita", receitaId: "massa", quantidade: 400 },
+        { tipo: "insumo", insumoId: "forminha", quantidade: 10 },
+      ],
+    };
+    const receitas = new Map([
+      ["massa", massa],
+      ["coxinha", coxinha],
+    ]);
+    // 20 coxinhas = 2 receitas: 800 g de massa → 400 g de farinha; 20 forminhas.
+    expect(Object.fromEntries(consumoDeInsumos("coxinha", 20, receitas))).toEqual({ farinha: 400, forminha: 20 });
+    const comPerda = new Map(receitas).set("coxinha", { ...coxinha, perdaPercentual: 20 });
+    expect(consumoDeInsumos("coxinha", 8, comPerda).get("forminha")).toBeCloseTo(10);
   });
 });
 

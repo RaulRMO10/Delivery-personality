@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { pedidoEncerrado, podeMudarStatus, type StatusPedido } from "@delivery/core";
 import { and, db, eq, schema } from "@delivery/db";
+import { baixarEstoqueDoPedido } from "@delivery/db/estoque";
 import { converterPedido, type PedidoIfood } from "@delivery/ifood";
 
 /** Grava o pedido do iFood (uma única vez por id externo). Retorna o id interno. */
@@ -63,7 +64,7 @@ export async function aplicarStatusExterno(pedidoId: string, para: StatusPedido,
   // Cancelamento e conclusão valem de qualquer etapa; as demais seguem a ordem normal.
   if (para !== "cancelado" && para !== "entregue" && !podeMudarStatus(de, para, atual.tipo)) return false;
 
-  return db.transaction(async (tx) => {
+  const aplicado = await db.transaction(async (tx) => {
     const [atualizado] = await tx
       .update(schema.pedidos)
       .set({ status: para, ...(para === "cancelado" ? { motivoCancelamento: observacao } : {}) })
@@ -73,4 +74,6 @@ export async function aplicarStatusExterno(pedidoId: string, para: StatusPedido,
     await tx.insert(schema.pedidoHistorico).values({ pedidoId, status: para, observacao });
     return true;
   });
+  if (aplicado && para === "entregue") await baixarEstoqueDoPedido(pedidoId).catch((erro) => console.error("Falha na baixa de estoque", erro));
+  return aplicado;
 }

@@ -71,6 +71,13 @@
       "when": 1792511817355,
       "tag": "0009_unknown_quentin_quire",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792512249226,
+      "tag": "0010_bored_doorman",
+      "breakpoints": true
     }
   ]
 }

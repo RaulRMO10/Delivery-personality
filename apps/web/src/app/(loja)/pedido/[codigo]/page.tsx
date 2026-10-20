@@ -10,6 +10,7 @@ import { mercadoPagoConfigurado, pixDoPedido } from "@/lib/pagamentos";
 import { sincronizarPagamento } from "@/lib/pagamento-online";
 import { PagarPix } from "@/components/loja/pagar-pix";
 import { PedirDeNovo } from "@/components/loja/pedir-de-novo";
+import { AvaliarPedido, Estrelas } from "@/components/loja/avaliar-pedido";
 import { cn } from "@/lib/utils";
 import { AtualizacaoAutomatica } from "@/components/loja/atualizacao-automatica";
 
@@ -88,6 +89,7 @@ export default async function PaginaPedido({ params }: PageProps<"/pedido/[codig
     }
   }
 
+  const [avaliacao] = await db.select().from(schema.avaliacoes).where(eq(schema.avaliacoes.pedidoId, pedido.id));
   const status = pedido.status as StatusPedido;
   const posicao = ORDEM.indexOf(status);
   const quando = (s: StatusPedido) => historico.find((h) => h.status === s)?.criadoEm;
@@ -202,6 +204,19 @@ export default async function PaginaPedido({ params }: PageProps<"/pedido/[codig
             : (config.endereco ?? "no local")}
         </p>
       </section>
+
+      {status === "entregue" &&
+        (avaliacao ? (
+          <section className="flex flex-col gap-2 rounded-2xl border border-borda bg-superficie p-5">
+            <p className="flex items-center gap-2 font-semibold">
+              Sua avaliação <Estrelas nota={avaliacao.nota} />
+            </p>
+            {avaliacao.comentario && <p className="text-sm text-texto-suave">{avaliacao.comentario}</p>}
+            {avaliacao.resposta && <p className="rounded-xl bg-fundo p-3 text-sm">Resposta da loja: {avaliacao.resposta}</p>}
+          </section>
+        ) : (
+          <AvaliarPedido codigo={codigo} />
+        ))}
 
       {pedidoEncerrado(status) && <PedirDeNovo codigo={codigo} />}
 

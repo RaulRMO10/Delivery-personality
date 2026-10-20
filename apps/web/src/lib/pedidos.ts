@@ -1,6 +1,7 @@
 import "server-only";
 import { pedidoEncerrado, perfilPodeMudarStatus, type Perfil, type StatusPedido } from "@delivery/core";
 import { acaoParaStatus } from "@delivery/ifood";
+import { baixarEstoqueDoPedido } from "@delivery/db/estoque";
 import { and, asc, db, desc, eq, inArray, schema, sql } from "@delivery/db";
 
 export type Pedido = typeof schema.pedidos.$inferSelect;
@@ -116,5 +117,9 @@ export async function mudarStatusPedido(opcoes: {
     return atualizado;
   });
   if (!pedido) return { ok: false, mensagem: "O pedido foi alterado por outra pessoa. Atualize a tela." };
+  if (opcoes.para === "entregue") {
+    // Falha na baixa de estoque não desfaz a entrega; fica registrada no log.
+    await baixarEstoqueDoPedido(pedido.id).catch((erro) => console.error("Falha na baixa de estoque", erro));
+  }
   return { ok: true, pedido };
 }

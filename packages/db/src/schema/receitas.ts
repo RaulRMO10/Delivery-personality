@@ -22,6 +22,10 @@ export const insumos = pgTable(
     fornecedor: text(),
     precoAtualizadoEm: timestamp({ withTimezone: true }).notNull().defaultNow(),
     ativo: boolean().notNull().default(true),
+    /** Estoque controlado: saldo e mínimo na unidade base. */
+    controlarEstoque: boolean().notNull().default(false),
+    estoqueAtual: numeric({ precision: 14, scale: 3, mode: "number" }).notNull().default(0),
+    estoqueMinimo: numeric({ precision: 14, scale: 3, mode: "number" }).notNull().default(0),
     ...datas,
   },
   (t) => [

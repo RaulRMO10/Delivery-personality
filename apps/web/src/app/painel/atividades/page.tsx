@@ -59,6 +59,12 @@ const DESCRICAO_ACAO: Record<string, string> = {
   "cupom.excluido": "Excluiu cupom",
   "fidelidade.salva": "Alterou fidelidade",
   "agenda.regras_salvas": "Alterou regras de encomenda",
+  "integracao.reenvio": "Reenviou ação ao iFood",
+  "estoque.configurado": "Configurou estoque",
+  "estoque.entrada": "Registrou entrada no estoque",
+  "estoque.perda": "Registrou perda no estoque",
+  "estoque.ajuste": "Ajustou estoque",
+  "avaliacao.respondida": "Respondeu avaliação",
 };
 
 export default async function PaginaAtividades() {

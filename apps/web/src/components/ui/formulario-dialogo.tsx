@@ -14,12 +14,14 @@ interface Props {
   titulo: string;
   /** Quando informado, exibe o botão de edição com este rótulo acessível. */
   rotuloEditar?: string;
+  /** Texto de um botão secundário (em vez do ícone de edição ou do botão principal). */
+  textoBotao?: string;
   acao: (anterior: ResultadoFormulario, dados: FormData) => Promise<ResultadoFormulario>;
   children: ReactNode;
 }
 
 /** Botão + janela com formulário enviado a uma ação do servidor. */
-export function FormularioDialogo({ titulo, rotuloEditar, acao, children }: Props) {
+export function FormularioDialogo({ titulo, rotuloEditar, textoBotao, acao, children }: Props) {
   const [aberto, setAberto] = useState(false);
   const [resultado, enviar, enviando] = useActionState<ResultadoFormulario, FormData>(async (anterior, dados) => {
     const novo = await acao(anterior, dados);
@@ -29,7 +31,11 @@ export function FormularioDialogo({ titulo, rotuloEditar, acao, children }: Prop
 
   return (
     <>
-      {rotuloEditar ? (
+      {textoBotao ? (
+        <Botao variante="secundario" className="min-h-11 px-3 text-sm" onClick={() => setAberto(true)}>
+          {textoBotao}
+        </Botao>
+      ) : rotuloEditar ? (
         <BotaoEditar rotulo={rotuloEditar} onClick={() => setAberto(true)} />
       ) : (
         <Botao onClick={() => setAberto(true)}>
