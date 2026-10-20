@@ -1,0 +1,42 @@
+import {
+  Bell,
+  BookOpen,
+  CalendarDays,
+  ChartColumn,
+  ChefHat,
+  CreditCard,
+  House,
+  Megaphone,
+  NotebookPen,
+  Package,
+  Plug,
+  ScrollText,
+  Star,
+  Store,
+  Truck,
+  Users,
+  UserCog,
+  type LucideIcon,
+} from "lucide-react";
+import type { ModuloId } from "@delivery/core";
+
+export const ICONE_MODULO: Record<ModuloId, LucideIcon> = {
+  inicio: House,
+  pedidos: Bell,
+  agenda: CalendarDays,
+  cardapio: BookOpen,
+  receitas: ChefHat,
+  estoque: Package,
+  clientes: Users,
+  marketing: Megaphone,
+  avaliacoes: Star,
+  relatorios: ChartColumn,
+  loja: Store,
+  entrega: Truck,
+  pagamentos: CreditCard,
+  integracoes: Plug,
+  usuarios: UserCog,
+  anotacoes: NotebookPen,
+  atividades: ScrollText,
+};
+

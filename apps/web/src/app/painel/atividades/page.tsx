@@ -1,0 +1,61 @@
+import type { Metadata } from "next";
+import { desc, eq, db, schema } from "@delivery/db";
+import { exigirModulo } from "@/lib/sessao";
+import { formatarDataHora } from "@/lib/utils";
+import { TituloPagina } from "@/components/titulo-pagina";
+import { Cartao } from "@/components/ui/cartao";
+
+export const metadata: Metadata = { title: "Atividades" };
+
+const LIMITE = 200;
+
+const DESCRICAO_ACAO: Record<string, string> = {
+  login: "Entrou no sistema",
+  "usuario.criado": "Criou usuário",
+  "usuario.perfil_alterado": "Alterou perfil",
+  "usuario.bloqueado": "Bloqueou usuário",
+  "usuario.desbloqueado": "Desbloqueou usuário",
+  "usuario.senha_redefinida": "Redefiniu senha",
+};
+
+export default async function PaginaAtividades() {
+  await exigirModulo("atividades");
+  const atividades = await db
+    .select({
+      id: schema.atividades.id,
+      acao: schema.atividades.acao,
+      detalhes: schema.atividades.detalhes,
+      criadoEm: schema.atividades.criadoEm,
+      usuario: schema.user.name,
+    })
+    .from(schema.atividades)
+    .leftJoin(schema.user, eq(schema.atividades.usuarioId, schema.user.id))
+    .orderBy(desc(schema.atividades.criadoEm))
+    .limit(LIMITE);
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <TituloPagina titulo="Atividades" />
+      <Cartao className="p-0">
+        {atividades.length === 0 ? (
+          <p className="p-8 text-center text-texto-suave">Nenhuma atividade.</p>
+        ) : (
+          <ul className="divide-y divide-borda">
+            {atividades.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 py-3">
+                <div>
+                  <span className="font-semibold">{a.usuario ?? "Usuário removido"}</span>{" "}
+                  <span className="text-texto-suave">{DESCRICAO_ACAO[a.acao] ?? a.acao}</span>
+                  {typeof a.detalhes?.email === "string" && <span className="text-texto-suave"> · {a.detalhes.email}</span>}
+                </div>
+                <time dateTime={a.criadoEm.toISOString()} className="text-sm text-texto-suave">
+                  {formatarDataHora(a.criadoEm)}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Cartao>
+    </div>
+  );
+}

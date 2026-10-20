@@ -9,7 +9,6 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "db:generate": "pnpm --filter @delivery/db generate",
-    "db:migrate": "pnpm --filter @delivery/db migrate",
-    "db:seed": "pnpm --filter @delivery/db seed"
+    "db:migrate": "pnpm --filter @delivery/db migrate"
   }
 }
