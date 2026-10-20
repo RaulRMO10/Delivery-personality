@@ -3,6 +3,7 @@ import { boolean, check, date, index, integer, jsonb, pgTable, serial, text, tim
 import { user } from "./auth";
 import { bairros } from "./loja";
 import { produtos } from "./cardapio";
+import { cupons } from "./marketing";
 
 export const clientes = pgTable(
   "clientes",
@@ -62,6 +63,10 @@ export const pedidos = pgTable(
     trocoPara: integer(),
     statusPagamento: text({ enum: ["pendente", "pago", "estornado"] }).notNull().default("pendente"),
     pagamentoExternoId: text(),
+    cupomId: uuid().references(() => cupons.id, { onDelete: "set null" }),
+    codigoCupom: text(),
+    /** O desconto deste pedido foi a recompensa de fidelidade (reinicia a contagem). */
+    recompensaFidelidade: boolean().notNull().default(false),
     observacao: text(),
     motivoCancelamento: text(),
     ip: text(),

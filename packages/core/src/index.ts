@@ -8,3 +8,4 @@ export * from "./cardapio";
 export * from "./funcionamento";
 export * from "./pedidos";
 export * from "./pix";
+export * from "./marketing";

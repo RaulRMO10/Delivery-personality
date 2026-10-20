@@ -4,13 +4,13 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
-import { NOME_PAGAMENTO, formatarDinheiro, taxaEntrega, type FormaPagamento } from "@delivery/core";
+import { NOME_PAGAMENTO, formatarDinheiro, normalizarTelefone, taxaEntrega, type FormaPagamento } from "@delivery/core";
 import { cn } from "@/lib/utils";
 import { Campo, Selecao } from "@/components/ui/campo";
 import { Aviso } from "@/components/ui/aviso";
 import { guardarPedidoNoAparelho, useCarrinho } from "@/components/loja/carrinho";
 import { Contador } from "@/components/loja/janela-produto";
-import { criarPedido } from "./acoes";
+import { criarPedido, simularDesconto, type PreviaDesconto } from "./acoes";
 
 interface Props {
   /** Pessoa da equipe logada: pode lançar pedidos de telefone e WhatsApp. */
@@ -89,9 +89,33 @@ export function Checkout({ operador, avisoIndisponiveis, aberta, bairros, aceita
     }
   }, [operador]);
 
+  const [cupomDigitado, setCupomDigitado] = useState("");
+  const [cupomAplicado, setCupomAplicado] = useState("");
+  const [previa, setPrevia] = useState<PreviaDesconto | null>(null);
+  const itensParaServidor = carrinho.itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade, escolhas: i.escolhas, observacao: i.observacao }));
+  const chavePrevia = JSON.stringify([normalizarTelefone(telefone), cupomAplicado, tipo, bairroId, itensParaServidor]);
+
+  // Prévia de cupom e fidelidade, recalculada quando os dados relevantes mudam.
+  useEffect(() => {
+    if (!carrinho.carregado || carrinho.itens.length === 0) return;
+    const telefoneValido = normalizarTelefone(telefone);
+    if (!telefoneValido && !cupomAplicado) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sem dados para a prévia
+      setPrevia(null);
+      return;
+    }
+    const id = setTimeout(async () => {
+      setPrevia(await simularDesconto({ telefone, cupom: cupomAplicado, tipo, bairroId, itens: itensParaServidor }));
+    }, 400);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chavePrevia resume as dependências
+  }, [chavePrevia, carrinho.carregado]);
+
   const bairro = bairros.find((b) => b.id === bairroId);
-  const taxa = tipo === "retirada" || !bairro ? 0 : taxaEntrega(carrinho.subtotal, bairro.taxa, { freteGratisAcima });
-  const total = carrinho.subtotal + taxa;
+  const taxaLocal = tipo === "retirada" || !bairro ? 0 : taxaEntrega(carrinho.subtotal, bairro.taxa, { freteGratisAcima });
+  const desconto = previa?.desconto ?? 0;
+  const taxa = previa ? previa.taxaEntrega : taxaLocal;
+  const total = carrinho.subtotal - desconto + taxa;
   const abaixoDoMinimo = carrinho.subtotal < pedidoMinimo;
 
   function finalizar() {
@@ -112,6 +136,7 @@ export function Checkout({ operador, avisoIndisponiveis, aberta, bairros, aceita
         formaPagamento: forma,
         canal,
         aceitaMarketing,
+        cupom: cupomAplicado,
         trocoPara: troco,
         observacao,
         itens: carrinho.itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade, escolhas: i.escolhas, observacao: i.observacao })),
@@ -282,11 +307,45 @@ export function Checkout({ operador, avisoIndisponiveis, aberta, bairros, aceita
         </label>
       </section>
 
+      <section className="flex flex-col gap-3 rounded-2xl border border-borda bg-superficie p-4">
+        <h2 className="text-lg font-bold">Cupom</h2>
+        <div className="flex gap-2">
+          <input
+            value={cupomDigitado}
+            onChange={(e) => setCupomDigitado(e.target.value.toUpperCase())}
+            placeholder="Código"
+            aria-label="Cupom"
+            maxLength={20}
+            className="min-h-12 min-w-0 flex-1 rounded-xl border border-borda px-4 uppercase outline-none focus:border-marca-500"
+          />
+          <button
+            type="button"
+            onClick={() => setCupomAplicado(cupomDigitado.trim())}
+            className="min-h-12 rounded-xl border border-borda px-4 font-semibold hover:bg-fundo"
+          >
+            Aplicar
+          </button>
+        </div>
+        {previa?.mensagem && <p className="text-sm font-semibold text-status-pronto">{previa.mensagem}</p>}
+        {previa?.erroCupom && cupomAplicado && <p className="text-sm text-status-cancelado">{previa.erroCupom}</p>}
+        {previa?.fidelidade && !previa.fidelidade.disponivel && (
+          <p className="text-sm text-texto-suave">
+            {previa.fidelidade.faltam === 1 ? "Falta 1 pedido" : `Faltam ${previa.fidelidade.faltam} pedidos`} para ganhar {previa.fidelidade.recompensa}.
+          </p>
+        )}
+      </section>
+
       <section className="flex flex-col gap-2 rounded-2xl border border-borda bg-superficie p-4">
         <div className="flex justify-between">
           <span className="text-texto-suave">Subtotal</span>
           <span>{formatarDinheiro(carrinho.subtotal)}</span>
         </div>
+        {desconto > 0 && (
+          <div className="flex justify-between text-status-pronto">
+            <span>Desconto</span>
+            <span>− {formatarDinheiro(desconto)}</span>
+          </div>
+        )}
         {tipo === "entrega" && (
           <div className="flex justify-between">
             <span className="text-texto-suave">Entrega</span>

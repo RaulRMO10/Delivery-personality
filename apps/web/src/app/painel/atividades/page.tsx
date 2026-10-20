@@ -55,6 +55,9 @@ const DESCRICAO_ACAO: Record<string, string> = {
   "pagamentos.salvos": "Alterou formas de pagamento",
   "cliente.atualizado": "Alterou cliente",
   "cliente.dados_excluidos": "Excluiu dados de cliente",
+  "cupom.salvo": "Salvou cupom",
+  "cupom.excluido": "Excluiu cupom",
+  "fidelidade.salva": "Alterou fidelidade",
 };
 
 export default async function PaginaAtividades() {

@@ -19,6 +19,10 @@ export const configuracaoLoja = pgTable(
     chavePix: text(),
     nomeRecebedorPix: text(),
     cidadePix: text(),
+    fidelidadeAtiva: boolean().notNull().default(false),
+    fidelidadePedidos: integer().notNull().default(10),
+    fidelidadeTipo: text({ enum: ["valor", "percentual"] }).notNull().default("valor"),
+    fidelidadeValor: integer().notNull().default(0),
     fechadaManual: boolean().notNull().default(false),
     pausadaAte: timestamp({ withTimezone: true }),
     atualizadoEm: timestamp({ withTimezone: true })

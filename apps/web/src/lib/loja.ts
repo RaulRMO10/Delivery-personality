@@ -25,6 +25,12 @@ export const obterConfiguracao = cache(async () => {
     chavePix: config?.chavePix ?? null,
     nomeRecebedorPix: config?.nomeRecebedorPix ?? null,
     cidadePix: config?.cidadePix ?? null,
+    fidelidade: {
+      ativa: config?.fidelidadeAtiva ?? false,
+      pedidos: config?.fidelidadePedidos ?? 10,
+      tipo: config?.fidelidadeTipo ?? ("valor" as const),
+      valor: config?.fidelidadeValor ?? 0,
+    },
     fechadaManual: config?.fechadaManual ?? false,
     pausadaAte: config?.pausadaAte ?? null,
     horarios: horarios.map((h): Intervalo & { id: string } => ({ id: h.id, diaSemana: h.diaSemana, abre: h.abre, fecha: h.fecha })),

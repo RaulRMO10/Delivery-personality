@@ -170,7 +170,9 @@ export default async function PaginaPedido({ params }: PageProps<"/pedido/[codig
           </div>
           {pedido.desconto > 0 && (
             <div className="flex justify-between">
-              <dt className="text-texto-suave">Desconto</dt>
+              <dt className="text-texto-suave">
+                Desconto{pedido.codigoCupom ? ` (${pedido.codigoCupom})` : pedido.recompensaFidelidade ? " (fidelidade)" : ""}
+              </dt>
               <dd>− {formatarDinheiro(pedido.desconto)}</dd>
             </div>
           )}

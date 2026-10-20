@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   FUSO_LOJA,
   calcularPedido,
+  descreverRecompensa,
   horarioLocal,
   lerDinheiro,
   normalizarTelefone,
@@ -21,6 +22,19 @@ import { formasAceitas } from "@/lib/pagamentos";
 import { obterUsuario } from "@/lib/sessao";
 import { gerarCobranca } from "@/lib/pagamento-online";
 import { mudarStatusPedido } from "@/lib/pedidos";
+import { calcularDescontos } from "@/lib/descontos";
+
+const esquemaItens = z
+  .array(
+    z.object({
+      produtoId: z.uuid(),
+      quantidade: z.number().int(),
+      escolhas: z.array(z.object({ grupoId: z.uuid(), opcaoId: z.uuid(), quantidade: z.number().int() })).max(50),
+      observacao: z.string().max(200).optional(),
+    }),
+  )
+  .min(1, "O carrinho está vazio.")
+  .max(50);
 
 const esquema = z
   .object({
@@ -45,19 +59,10 @@ const esquema = z
     formaPagamento: z.enum(["pix", "pix_online", "dinheiro", "cartao"]),
     canal: z.enum(["site", "whatsapp", "telefone"]).default("site"),
     aceitaMarketing: z.boolean().default(false),
+    cupom: z.string().max(30).optional(),
     trocoPara: z.string().optional(),
     observacao: z.string().trim().max(300).optional(),
-    itens: z
-      .array(
-        z.object({
-          produtoId: z.uuid(),
-          quantidade: z.number().int(),
-          escolhas: z.array(z.object({ grupoId: z.uuid(), opcaoId: z.uuid(), quantidade: z.number().int() })).max(50),
-          observacao: z.string().max(200).optional(),
-        }),
-      )
-      .min(1, "O carrinho está vazio.")
-      .max(50),
+    itens: esquemaItens,
   })
   .superRefine((d, ctx) => {
     if (d.tipo === "entrega") {
@@ -79,6 +84,58 @@ function instanteLocal(data: string, hora: string): Date | null {
   if (Number.isNaN(instante.getTime())) return null;
   const local = horarioLocal(instante, FUSO_LOJA);
   return local.data === data ? instante : null;
+}
+
+export interface PreviaDesconto {
+  desconto: number;
+  taxaEntrega: number;
+  total: number;
+  mensagem: string | null;
+  erroCupom: string | null;
+  fidelidade: { faltam: number; disponivel: boolean; recompensa: string } | null;
+}
+
+const esquemaPrevia = z.object({
+  telefone: z.string().max(30),
+  cupom: z.string().max(30),
+  tipo: z.enum(["entrega", "retirada"]),
+  bairroId: z.string().max(40),
+  itens: esquemaItens,
+});
+
+/** Prévia de desconto (cupom e fidelidade) para exibir no checkout. */
+export async function simularDesconto(dados: z.input<typeof esquemaPrevia>): Promise<PreviaDesconto | null> {
+  const ip = await ipDaRequisicao();
+  if (!(await dentroDoLimite(`previa:ip:${ip}`, 60, 600))) return null;
+  const validacao = esquemaPrevia.safeParse(dados);
+  if (!validacao.success) return null;
+  const d = validacao.data;
+  const config = await obterConfiguracao();
+  const bairroId = z.uuid().safeParse(d.bairroId);
+  const [bairro] = d.tipo === "entrega" && bairroId.success ? await db.select().from(schema.bairros).where(eq(schema.bairros.id, bairroId.data)) : [];
+  const produtos = await produtosParaVenda(d.itens.map((i) => i.produtoId));
+  const parametros = { tipo: d.tipo, taxaBairro: bairro?.taxa ?? 0, freteGratisAcima: config.freteGratisAcima, pedidoMinimo: 0 };
+  const base = calcularPedido(d.itens, produtos, parametros);
+  if (!base.ok) return null;
+  const descontos = await calcularDescontos({
+    telefone: normalizarTelefone(d.telefone),
+    codigoCupom: d.cupom,
+    subtotal: base.subtotal,
+    taxaEntrega: base.taxaEntrega,
+    regra: config.fidelidade,
+  });
+  const final = descontos.desconto ? calcularPedido(d.itens, produtos, { ...parametros, desconto: descontos.desconto }) : base;
+  if (!final.ok) return null;
+  return {
+    desconto: final.desconto,
+    taxaEntrega: final.taxaEntrega,
+    total: final.total,
+    mensagem: descontos.mensagem,
+    erroCupom: descontos.erroCupom,
+    fidelidade: descontos.fidelidade
+      ? { faltam: descontos.fidelidade.faltam, disponivel: descontos.fidelidade.disponivel, recompensa: descreverRecompensa(config.fidelidade) }
+      : null,
+  };
 }
 
 function gerarCodigo() {
@@ -128,12 +185,25 @@ export async function criarPedido(dados: DadosPedido): Promise<ResultadoPedido> 
   }
 
   const produtos = await produtosParaVenda(d.itens.map((i) => i.produtoId));
-  const calculo = calcularPedido(d.itens, produtos, {
+  const parametros = {
     tipo: d.tipo,
     taxaBairro: bairro?.taxa ?? 0,
     freteGratisAcima: config.freteGratisAcima,
     pedidoMinimo: config.pedidoMinimo,
+  };
+  const semDesconto = calcularPedido(d.itens, produtos, parametros);
+  if (!semDesconto.ok) return { ok: false, mensagem: semDesconto.erro };
+
+  // Cupom e fidelidade recalculados aqui; o que o navegador mostrou é só uma prévia.
+  const descontos = await calcularDescontos({
+    telefone: d.telefone,
+    codigoCupom: d.cupom ?? null,
+    subtotal: semDesconto.subtotal,
+    taxaEntrega: semDesconto.taxaEntrega,
+    regra: config.fidelidade,
   });
+  if (d.cupom?.trim() && descontos.erroCupom && !descontos.recompensaFidelidade) return { ok: false, mensagem: descontos.erroCupom };
+  const calculo = descontos.desconto ? calcularPedido(d.itens, produtos, { ...parametros, desconto: descontos.desconto }) : semDesconto;
   if (!calculo.ok) return { ok: false, mensagem: calculo.erro };
 
   const trocoPara = d.formaPagamento === "dinheiro" && d.trocoPara?.trim() ? lerDinheiro(d.trocoPara) : null;
@@ -176,6 +246,9 @@ export async function criarPedido(dados: DadosPedido): Promise<ResultadoPedido> 
         formaPagamento: d.formaPagamento,
         trocoPara,
         observacao: d.observacao || null,
+        cupomId: descontos.cupomId,
+        codigoCupom: descontos.codigoCupom,
+        recompensaFidelidade: descontos.recompensaFidelidade,
         ip,
       })
       .returning({ id: schema.pedidos.id, numero: schema.pedidos.numero });
