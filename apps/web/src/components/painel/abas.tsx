@@ -4,29 +4,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const ABAS = [
-  { nome: "Receitas", caminho: "/painel/receitas" },
-  { nome: "Ingredientes", caminho: "/painel/receitas/ingredientes" },
-  { nome: "Embalagens", caminho: "/painel/receitas/embalagens" },
-  { nome: "Custos fixos", caminho: "/painel/receitas/custos" },
-  { nome: "Canais", caminho: "/painel/receitas/canais" },
-  { nome: "Precificação", caminho: "/painel/receitas/precificacao" },
-];
-
-function ativa(atual: string, caminho: string) {
-  if (caminho === "/painel/receitas") {
-    return atual === caminho || atual === "/painel/receitas/nova" || /^\/painel\/receitas\/[0-9a-f-]{36}$/.test(atual);
-  }
-  return atual.startsWith(caminho);
+export interface Aba {
+  nome: string;
+  caminho: string;
 }
 
-export function AbasReceitas() {
-  const atual = usePathname();
+/** A aba ativa é a de caminho mais longo que contém a página atual. */
+function abaAtiva(abas: Aba[], atual: string): string | undefined {
+  return abas
+    .filter((a) => atual === a.caminho || atual.startsWith(`${a.caminho}/`))
+    .sort((a, b) => b.caminho.length - a.caminho.length)[0]?.caminho;
+}
+
+export function Abas({ abas }: { abas: Aba[] }) {
+  const ativa = abaAtiva(abas, usePathname());
   return (
     <nav className="-mx-4 mb-6 overflow-x-auto border-b border-borda px-4 md:mx-0 md:px-0" aria-label="Seções">
       <ul className="flex min-w-max gap-1">
-        {ABAS.map((aba) => {
-          const selecionada = ativa(atual, aba.caminho);
+        {abas.map((aba) => {
+          const selecionada = aba.caminho === ativa;
           return (
             <li key={aba.caminho}>
               <Link

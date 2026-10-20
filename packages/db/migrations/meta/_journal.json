@@ -15,6 +15,13 @@
       "when": 1792502839070,
       "tag": "0001_tricky_madrox",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792505934382,
+      "tag": "0002_burly_storm",
+      "breakpoints": true
     }
   ]
 }

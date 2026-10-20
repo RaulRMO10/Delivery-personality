@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, index, integer, numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, index, integer, numeric, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 const datas = {
   criadoEm: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -92,9 +92,14 @@ export const canaisVenda = pgTable(
     nome: text().notNull(),
     taxaPercentual: numeric({ precision: 5, scale: 2, mode: "number" }).notNull().default(0),
     ativo: boolean().notNull().default(true),
+    /** Canal da loja própria: usa o preço principal do produto. Apenas um. */
+    principal: boolean().notNull().default(false),
     ...datas,
   },
-  (t) => [check("canais_taxa_valida", sql`${t.taxaPercentual} >= 0 AND ${t.taxaPercentual} < 100`)],
+  (t) => [
+    check("canais_taxa_valida", sql`${t.taxaPercentual} >= 0 AND ${t.taxaPercentual} < 100`),
+    uniqueIndex("canais_venda_um_principal").on(t.principal).where(sql`${t.principal}`),
+  ],
 );
 
 /** Parâmetros gerais de precificação (linha única, id = 1). */

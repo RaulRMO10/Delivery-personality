@@ -4,3 +4,4 @@ export * from "./modulos";
 export * from "./numeros";
 export * from "./receitas";
 export * from "./precificacao";
+export * from "./cardapio";

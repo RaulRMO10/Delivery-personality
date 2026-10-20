@@ -27,6 +27,20 @@ const DESCRICAO_ACAO: Record<string, string> = {
   "parametros.salvos": "Alterou parâmetros de preço",
   "canal.salvo": "Salvou canal",
   "canal.excluido": "Excluiu canal",
+  "produto.criado": "Criou produto",
+  "produto.atualizado": "Alterou produto",
+  "produto.excluido": "Excluiu produto",
+  "produto.esgotado": "Marcou esgotado",
+  "produto.disponivel": "Marcou disponível",
+  "produto.ativado": "Exibiu produto",
+  "produto.ocultado": "Ocultou produto",
+  "opcao.esgotada": "Marcou opção esgotada",
+  "opcao.disponivel": "Marcou opção disponível",
+  "categoria.salva": "Salvou categoria",
+  "categoria.excluida": "Excluiu categoria",
+  "grupo.criado": "Criou complemento",
+  "grupo.atualizado": "Alterou complemento",
+  "grupo.excluido": "Excluiu complemento",
 };
 
 export default async function PaginaAtividades() {

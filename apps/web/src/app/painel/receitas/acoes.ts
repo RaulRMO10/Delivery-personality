@@ -324,7 +324,9 @@ export async function salvarCanal(_anterior: Resultado, dados: FormData): Promis
 
 export async function excluirCanal(id: string): Promise<Resultado> {
   const usuario = await exigirModulo("receitas");
-  const [removido] = await db.delete(schema.canaisVenda).where(eq(schema.canaisVenda.id, z.uuid().parse(id))).returning({ nome: schema.canaisVenda.nome });
+  const [canal] = await db.select({ principal: schema.canaisVenda.principal }).from(schema.canaisVenda).where(eq(schema.canaisVenda.id, z.uuid().parse(id)));
+  if (canal?.principal) return { ok: false, mensagem: "O canal da loja própria não pode ser excluído." };
+  const [removido] = await db.delete(schema.canaisVenda).where(eq(schema.canaisVenda.id, id)).returning({ nome: schema.canaisVenda.nome });
   if (removido) {
     await registrarAtividade({ usuarioId: usuario.id, acao: "canal.excluido", entidade: "canal", entidadeId: id, detalhes: { nome: removido.nome } });
   }

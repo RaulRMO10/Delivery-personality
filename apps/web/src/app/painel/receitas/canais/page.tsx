@@ -4,6 +4,7 @@ import { exigirModulo } from "@/lib/sessao";
 import { Cartao } from "@/components/ui/cartao";
 import { Campo } from "@/components/ui/campo";
 import { Vazio } from "@/components/ui/vazio";
+import { Selo } from "@/components/ui/selo";
 import { BotaoExcluir } from "@/components/ui/botao-excluir";
 import { obterParametros } from "../dados";
 import { excluirCanal, salvarCanal } from "../acoes";
@@ -45,13 +46,16 @@ export default async function PaginaCanais() {
           <ul className="divide-y divide-borda">
             {canais.map((c) => (
               <li key={c.id} className="flex items-center gap-3 px-5 py-3">
-                <p className="flex-1 font-semibold">{c.nome}</p>
+                <p className="flex flex-1 items-center gap-2 font-semibold">
+                  {c.nome}
+                  {c.principal && <Selo>Loja própria</Selo>}
+                </p>
                 <p className="font-semibold">{formatarPercentual(c.taxaPercentual)}</p>
                 <div className="flex">
                   <FormularioSimples titulo="Editar canal" rotuloEditar={`Editar ${c.nome}`} acao={salvarCanal}>
                     <CamposCanal id={c.id} nome={c.nome} taxa={c.taxaPercentual} />
                   </FormularioSimples>
-                  <BotaoExcluir id={c.id} nome={c.nome} acao={excluirCanal} />
+                  {c.principal ? <span className="size-11" aria-hidden /> : <BotaoExcluir id={c.id} nome={c.nome} acao={excluirCanal} />}
                 </div>
               </li>
             ))}
