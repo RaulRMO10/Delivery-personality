@@ -41,6 +41,15 @@ const DESCRICAO_ACAO: Record<string, string> = {
   "grupo.criado": "Criou complemento",
   "grupo.atualizado": "Alterou complemento",
   "grupo.excluido": "Excluiu complemento",
+  "loja.pausada": "Pausou a loja",
+  "loja.fechada": "Fechou a loja",
+  "loja.reaberta": "Reabriu a loja",
+  "loja.dados_salvos": "Alterou dados da loja",
+  "loja.horarios_salvos": "Alterou horários",
+  "loja.data_fechada": "Adicionou data fechada",
+  "entrega.regras_salvas": "Alterou regras de entrega",
+  "bairro.salvo": "Salvou bairro",
+  "bairro.excluido": "Excluiu bairro",
 };
 
 export default async function PaginaAtividades() {

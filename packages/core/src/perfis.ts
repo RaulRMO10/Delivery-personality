@@ -23,6 +23,11 @@ export function ehAdmin(perfil: Perfil): boolean {
   return (PERFIS_ADMIN as readonly Perfil[]).includes(perfil);
 }
 
+/** Quem pode pausar, fechar e reabrir a loja no dia a dia. */
+export function podeOperarLoja(perfil: Perfil): boolean {
+  return perfil === "dona" || perfil === "suporte" || perfil === "cozinha";
+}
+
 export function exige2fa(perfil: Perfil): boolean {
   return (PERFIS_COM_2FA_OBRIGATORIO as readonly Perfil[]).includes(perfil);
 }

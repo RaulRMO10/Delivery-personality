@@ -22,6 +22,13 @@
       "when": 1792505934382,
       "tag": "0002_burly_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792508359575,
+      "tag": "0003_foamy_killmonger",
+      "breakpoints": true
     }
   ]
 }
