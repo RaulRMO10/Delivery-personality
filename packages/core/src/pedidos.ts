@@ -88,6 +88,17 @@ export const ROTULO_AVANCO: Partial<Record<StatusPedido, string>> = {
   entregue: "Concluir",
 };
 
+/** O entregador só registra a saída e a entrega de pedidos para entrega. */
+export function perfilPodeMudarStatus(perfil: "dona" | "suporte" | "cozinha" | "entregador", de: StatusPedido, para: StatusPedido, tipo: TipoEntrega): boolean {
+  if (!podeMudarStatus(de, para, tipo)) return false;
+  if (perfil !== "entregador") return true;
+  return tipo === "entrega" && ((de === "pronto" && para === "saiu_para_entrega") || (de === "saiu_para_entrega" && para === "entregue"));
+}
+
+/** Minutos desde a criação a partir dos quais o pedido é destacado como atrasado. */
+export const MINUTOS_ATENCAO = 30;
+export const MINUTOS_ATRASO = 50;
+
 export function pedidoEncerrado(status: StatusPedido): boolean {
   return status === "entregue" || status === "cancelado";
 }

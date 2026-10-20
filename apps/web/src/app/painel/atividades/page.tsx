@@ -50,6 +50,8 @@ const DESCRICAO_ACAO: Record<string, string> = {
   "entrega.regras_salvas": "Alterou regras de entrega",
   "bairro.salvo": "Salvou bairro",
   "bairro.excluido": "Excluiu bairro",
+  "pedido.cancelado": "Cancelou pedido",
+  "pedido.pago": "Registrou pagamento",
 };
 
 export default async function PaginaAtividades() {

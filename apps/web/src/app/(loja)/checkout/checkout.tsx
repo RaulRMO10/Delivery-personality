@@ -13,6 +13,8 @@ import { Contador } from "@/components/loja/janela-produto";
 import { criarPedido } from "./acoes";
 
 interface Props {
+  /** Pessoa da equipe logada: pode lançar pedidos de telefone e WhatsApp. */
+  operador: boolean;
   aberta: boolean;
   bairros: { id: string; nome: string; taxa: number }[];
   aceitaRetirada: boolean;
@@ -41,7 +43,8 @@ function Opcao({ ativo, onClick, children, disabled }: { ativo: boolean; onClick
   );
 }
 
-export function Checkout({ aberta, bairros, aceitaRetirada, pedidoMinimo, freteGratisAcima, formas, hoje }: Props) {
+export function Checkout({ operador, aberta, bairros, aceitaRetirada, pedidoMinimo, freteGratisAcima, formas, hoje }: Props) {
+  const [canal, setCanal] = useState<"site" | "whatsapp" | "telefone">(operador ? "whatsapp" : "site");
   const router = useRouter();
   const carrinho = useCarrinho();
   const [pendente, iniciar] = useTransition();
@@ -62,8 +65,9 @@ export function Checkout({ aberta, bairros, aceitaRetirada, pedidoMinimo, freteG
   const [troco, setTroco] = useState("");
   const [observacao, setObservacao] = useState("");
 
-  // Preenche os dados do último pedido feito neste aparelho.
+  // Preenche os dados do último pedido feito neste aparelho (não para a equipe, que lança para vários clientes).
   useEffect(() => {
+    if (operador) return;
     try {
       const salvo = JSON.parse(localStorage.getItem(CHAVE_CLIENTE) ?? "null");
       if (salvo) {
@@ -80,7 +84,7 @@ export function Checkout({ aberta, bairros, aceitaRetirada, pedidoMinimo, freteG
     } catch {
       // Sem dados salvos.
     }
-  }, []);
+  }, [operador]);
 
   const bairro = bairros.find((b) => b.id === bairroId);
   const taxa = tipo === "retirada" || !bairro ? 0 : taxaEntrega(carrinho.subtotal, bairro.taxa, { freteGratisAcima });
@@ -103,12 +107,18 @@ export function Checkout({ aberta, bairros, aceitaRetirada, pedidoMinimo, freteG
         data,
         hora,
         formaPagamento: forma,
+        canal,
         trocoPara: troco,
         observacao,
         itens: carrinho.itens.map((i) => ({ produtoId: i.produtoId, quantidade: i.quantidade, escolhas: i.escolhas, observacao: i.observacao })),
       });
       if (!resultado.ok) {
         setErro(resultado.mensagem);
+        return;
+      }
+      if (operador) {
+        carrinho.limpar();
+        router.push("/painel/pedidos");
         return;
       }
       try {
@@ -138,6 +148,19 @@ export function Checkout({ aberta, bairros, aceitaRetirada, pedidoMinimo, freteG
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
       <h1 className="text-2xl font-bold">Finalizar pedido</h1>
+
+      {operador && (
+        <section className="flex flex-col gap-3 rounded-2xl border border-marca-200 bg-marca-50 p-4">
+          <p className="text-sm font-bold text-marca-700">Pedido lançado pela equipe</p>
+          <div className="flex gap-2">
+            {(["whatsapp", "telefone", "site"] as const).map((c) => (
+              <Opcao key={c} ativo={canal === c} onClick={() => setCanal(c)}>
+                {c === "whatsapp" ? "WhatsApp" : c === "telefone" ? "Telefone" : "Site"}
+              </Opcao>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="rounded-2xl border border-borda bg-superficie">
         <ul className="divide-y divide-borda">

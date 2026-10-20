@@ -3,6 +3,8 @@ import { connection } from "next/server";
 import { asc, db, eq, schema } from "@delivery/db";
 import { calcularStatus, obterConfiguracao } from "@/lib/loja";
 import { formasAceitas } from "@/lib/pagamentos";
+import { obterUsuario } from "@/lib/sessao";
+import { podeOperarLoja } from "@delivery/core";
 import { Checkout } from "./checkout";
 
 export const metadata: Metadata = { title: "Finalizar pedido" };
@@ -14,9 +16,11 @@ export default async function PaginaCheckout() {
     db.select({ id: schema.bairros.id, nome: schema.bairros.nome, taxa: schema.bairros.taxa }).from(schema.bairros).where(eq(schema.bairros.ativo, true)).orderBy(asc(schema.bairros.nome)),
   ]);
   const hoje = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+  const usuario = await obterUsuario();
 
   return (
     <Checkout
+      operador={usuario !== null && podeOperarLoja(usuario.perfil)}
       aberta={calcularStatus(config).aberta}
       bairros={bairros}
       aceitaRetirada={config.aceitaRetirada}

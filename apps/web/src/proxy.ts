@@ -10,5 +10,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/painel/:path*"],
+  matcher: ["/painel/:path*", "/comanda/:path*"],
 };

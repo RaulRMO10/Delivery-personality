@@ -8,6 +8,7 @@ import {
   horarioLocal,
   lerDinheiro,
   normalizarTelefone,
+  podeOperarLoja,
   statusLoja,
   validarTroco,
   type StatusPedido,
@@ -17,6 +18,7 @@ import { calcularStatus, obterConfiguracao } from "@/lib/loja";
 import { produtosParaVenda } from "@/lib/cardapio-publico";
 import { dentroDoLimite, ipDaRequisicao } from "@/lib/limite";
 import { formasAceitas } from "@/lib/pagamentos";
+import { obterUsuario } from "@/lib/sessao";
 
 const esquema = z
   .object({
@@ -39,6 +41,7 @@ const esquema = z
     data: z.string().optional(),
     hora: z.string().optional(),
     formaPagamento: z.enum(["pix", "pix_online", "dinheiro", "cartao"]),
+    canal: z.enum(["site", "whatsapp", "telefone"]).default("site"),
     trocoPara: z.string().optional(),
     observacao: z.string().trim().max(300).optional(),
     itens: z
@@ -81,12 +84,16 @@ function gerarCodigo() {
 
 export async function criarPedido(dados: DadosPedido): Promise<ResultadoPedido> {
   const ip = await ipDaRequisicao();
-  if (!(await dentroDoLimite(`pedido:ip:${ip}`, 30, 600))) return { ok: false, mensagem: "Muitas tentativas em pouco tempo. Aguarde alguns minutos." };
+  const usuario = await obterUsuario();
+  // Pedido lançado pela equipe (telefone/WhatsApp): sem limite de tentativas.
+  const operador = usuario !== null && podeOperarLoja(usuario.perfil);
+  if (!operador && !(await dentroDoLimite(`pedido:ip:${ip}`, 30, 600))) return { ok: false, mensagem: "Muitas tentativas em pouco tempo. Aguarde alguns minutos." };
 
   const validacao = esquema.safeParse(dados);
   if (!validacao.success) return { ok: false, mensagem: validacao.error.issues[0]?.message ?? "Dados inválidos." };
   const d = validacao.data;
-  if (!(await dentroDoLimite(`pedido:tel:${d.telefone}`, 6, 600))) return { ok: false, mensagem: "Muitas tentativas em pouco tempo. Aguarde alguns minutos." };
+  if (d.canal !== "site" && !operador) return { ok: false, mensagem: "Canal inválido." };
+  if (!operador && !(await dentroDoLimite(`pedido:tel:${d.telefone}`, 6, 600))) return { ok: false, mensagem: "Muitas tentativas em pouco tempo. Aguarde alguns minutos." };
 
   const config = await obterConfiguracao();
   const agora = new Date();
@@ -146,7 +153,7 @@ export async function criarPedido(dados: DadosPedido): Promise<ResultadoPedido> 
       .insert(schema.pedidos)
       .values({
         codigo,
-        canal: "site",
+        canal: d.canal,
         clienteId: cliente!.id,
         nomeCliente: d.nome,
         telefoneCliente: d.telefone,

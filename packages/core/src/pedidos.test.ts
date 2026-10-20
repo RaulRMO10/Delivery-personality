@@ -3,6 +3,7 @@ import {
   calcularPedido,
   formatarTelefone,
   normalizarTelefone,
+  perfilPodeMudarStatus,
   podeMudarStatus,
   proximoPasso,
   validarTroco,
@@ -48,6 +49,15 @@ describe("etapas do pedido", () => {
   it("retirada pula a saída para entrega", () => {
     expect(proximoPasso("pronto", "retirada")).toBe("entregue");
     expect(podeMudarStatus("pronto", "saiu_para_entrega", "retirada")).toBe(false);
+  });
+
+  it("entregador só registra saída e entrega", () => {
+    expect(perfilPodeMudarStatus("entregador", "pronto", "saiu_para_entrega", "entrega")).toBe(true);
+    expect(perfilPodeMudarStatus("entregador", "saiu_para_entrega", "entregue", "entrega")).toBe(true);
+    expect(perfilPodeMudarStatus("entregador", "recebido", "confirmado", "entrega")).toBe(false);
+    expect(perfilPodeMudarStatus("entregador", "pronto", "cancelado", "entrega")).toBe(false);
+    expect(perfilPodeMudarStatus("entregador", "pronto", "entregue", "retirada")).toBe(false);
+    expect(perfilPodeMudarStatus("cozinha", "recebido", "cancelado", "entrega")).toBe(true);
   });
 
   it("não volta etapas nem altera pedido encerrado", () => {
