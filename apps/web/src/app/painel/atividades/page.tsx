@@ -16,6 +16,17 @@ const DESCRICAO_ACAO: Record<string, string> = {
   "usuario.bloqueado": "Bloqueou usuário",
   "usuario.desbloqueado": "Desbloqueou usuário",
   "usuario.senha_redefinida": "Redefiniu senha",
+  "insumo.criado": "Cadastrou item",
+  "insumo.atualizado": "Alterou item",
+  "insumo.excluido": "Excluiu item",
+  "receita.criada": "Criou receita",
+  "receita.atualizada": "Alterou receita",
+  "receita.excluida": "Excluiu receita",
+  "custo_fixo.salvo": "Salvou custo fixo",
+  "custo_fixo.excluido": "Excluiu custo fixo",
+  "parametros.salvos": "Alterou parâmetros de preço",
+  "canal.salvo": "Salvou canal",
+  "canal.excluido": "Excluiu canal",
 };
 
 export default async function PaginaAtividades() {
@@ -47,6 +58,7 @@ export default async function PaginaAtividades() {
                   <span className="font-semibold">{a.usuario ?? "Usuário removido"}</span>{" "}
                   <span className="text-texto-suave">{DESCRICAO_ACAO[a.acao] ?? a.acao}</span>
                   {typeof a.detalhes?.email === "string" && <span className="text-texto-suave"> · {a.detalhes.email}</span>}
+                  {typeof a.detalhes?.nome === "string" && <span className="text-texto-suave"> · {a.detalhes.nome}</span>}
                 </div>
                 <time dateTime={a.criadoEm.toISOString()} className="text-sm text-texto-suave">
                   {formatarDataHora(a.criadoEm)}

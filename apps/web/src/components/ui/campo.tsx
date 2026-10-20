@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useId, type InputHTMLAttributes, type SelectHTMLAttributes } from "react";
+import { useId, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 const estiloCampo =
   "min-h-12 w-full rounded-xl border border-borda bg-superficie px-4 text-base outline-none transition-colors focus:border-marca-500 focus:ring-2 focus:ring-marca-100";
@@ -36,6 +36,23 @@ export function Selecao({ rotulo, className, id, children, ...props }: SelecaoPr
       <select id={idCampo} className={cn(estiloCampo, className)} {...props}>
         {children}
       </select>
+    </div>
+  );
+}
+
+interface AreaTextoProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  rotulo: string;
+}
+
+export function AreaTexto({ rotulo, className, id, ...props }: AreaTextoProps) {
+  const idGerado = useId();
+  const idCampo = id ?? idGerado;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={idCampo} className="text-sm font-semibold">
+        {rotulo}
+      </label>
+      <textarea id={idCampo} className={cn(estiloCampo, "min-h-28 py-3", className)} {...props} />
     </div>
   );
 }
