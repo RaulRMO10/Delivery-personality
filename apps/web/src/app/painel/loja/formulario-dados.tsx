@@ -6,6 +6,7 @@ import { Campo } from "@/components/ui/campo";
 import { Cartao } from "@/components/ui/cartao";
 import { Aviso } from "@/components/ui/aviso";
 import { salvarDadosLoja } from "./acoes";
+import { aoEnviar } from "@/lib/formulario";
 
 interface Valores {
   nome: string;
@@ -21,7 +22,7 @@ export function FormularioDados({ valores }: { valores: Valores }) {
   return (
     <Cartao>
       <h2 className="mb-4 text-lg font-bold">Dados</h2>
-      <form action={enviar} className="grid gap-4 sm:grid-cols-2">
+      <form onSubmit={aoEnviar(enviar)} className="grid gap-4 sm:grid-cols-2">
         <Campo rotulo="Nome da loja" name="nome" defaultValue={valores.nome} maxLength={60} autoComplete="off" />
         <Campo rotulo="WhatsApp" name="telefone" defaultValue={valores.telefone} inputMode="tel" placeholder="(11) 99999-9999" />
         <div className="sm:col-span-2">

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "criar-administradora": "tsx --env-file=.env scripts/criar-administradora.mts"
+    "criar-administradora": "tsx --env-file=.env scripts/criar-administradora.mts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@delivery/core": "workspace:*",
@@ -35,7 +36,8 @@
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.5"
   },
   "packageManager": "pnpm@10.28.0"
 }

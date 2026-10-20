@@ -116,6 +116,29 @@ export const pedidoHistorico = pgTable(
   (t) => [index().on(t.pedidoId)],
 );
 
+/** Cobrança Pix online gerada no provedor de pagamento. */
+export const pagamentosOnline = pgTable(
+  "pagamentos_online",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    pedidoId: uuid()
+      .notNull()
+      .references(() => pedidos.id, { onDelete: "cascade" }),
+    provedor: text().notNull(),
+    externoId: text().notNull(),
+    status: text().notNull(),
+    qrCode: text(),
+    qrCodeBase64: text(),
+    expiraEm: timestamp({ withTimezone: true }),
+    criadoEm: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    atualizadoEm: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index().on(t.pedidoId), uniqueIndex().on(t.provedor, t.externoId)],
+);
+
 /** Contador simples para limitar abusos em ações públicas (ex.: criar pedido). */
 export const limitesUso = pgTable("limites_uso", {
   chave: text().primaryKey(),

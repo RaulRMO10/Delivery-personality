@@ -52,6 +52,7 @@ const DESCRICAO_ACAO: Record<string, string> = {
   "bairro.excluido": "Excluiu bairro",
   "pedido.cancelado": "Cancelou pedido",
   "pedido.pago": "Registrou pagamento",
+  "pagamentos.salvos": "Alterou formas de pagamento",
 };
 
 export default async function PaginaAtividades() {

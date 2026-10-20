@@ -7,6 +7,7 @@ import { Botao } from "@/components/ui/botao";
 import { Campo, Selecao } from "@/components/ui/campo";
 import { Aviso } from "@/components/ui/aviso";
 import { criarUsuario, type ResultadoAcao } from "./acoes";
+import { aoEnviar } from "@/lib/formulario";
 
 export function NovoUsuario() {
   const [aberto, setAberto] = useState(false);
@@ -33,7 +34,7 @@ export function NovoUsuario() {
                 <X className="size-5" />
               </button>
             </div>
-            <form action={enviar} className="flex flex-col gap-4">
+            <form onSubmit={aoEnviar(enviar)} className="flex flex-col gap-4">
               <Campo rotulo="Nome" name="nome" autoComplete="off" required />
               <Campo rotulo="E-mail" name="email" type="email" autoComplete="off" required />
               <Selecao rotulo="Perfil" name="perfil" defaultValue="cozinha">

@@ -33,7 +33,7 @@ export const FORMAS_PAGAMENTO = ["pix", "pix_online", "dinheiro", "cartao"] as c
 export type FormaPagamento = (typeof FORMAS_PAGAMENTO)[number];
 
 export const NOME_PAGAMENTO: Record<FormaPagamento, string> = {
-  pix: "Pix na entrega",
+  pix: "Pix",
   pix_online: "Pix online",
   dinheiro: "Dinheiro",
   cartao: "Cartão na entrega",

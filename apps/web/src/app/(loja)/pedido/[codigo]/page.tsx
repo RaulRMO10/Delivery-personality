@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
+import QRCode from "qrcode";
 import { Check, MessageCircle } from "lucide-react";
 import { FUSO_LOJA, NOME_PAGAMENTO, NOME_STATUS, formatarDinheiro, pedidoEncerrado, type FormaPagamento, type StatusPedido } from "@delivery/core";
-import { asc, db, eq, schema } from "@delivery/db";
+import { asc, db, desc, eq, schema } from "@delivery/db";
 import { obterConfiguracao } from "@/lib/loja";
+import { mercadoPagoConfigurado, pixDoPedido } from "@/lib/pagamentos";
+import { sincronizarPagamento } from "@/lib/pagamento-online";
+import { PagarPix } from "@/components/loja/pagar-pix";
 import { cn } from "@/lib/utils";
 import { AtualizacaoAutomatica } from "@/components/loja/atualizacao-automatica";
 
@@ -43,6 +47,45 @@ export default async function PaginaPedido({ params }: PageProps<"/pedido/[codig
     db.select().from(schema.pedidoHistorico).where(eq(schema.pedidoHistorico.pedidoId, pedido.id)).orderBy(asc(schema.pedidoHistorico.criadoEm)),
     obterConfiguracao(),
   ]);
+
+  // Pix: online (Mercado Pago) aguardando confirmação, ou QR da chave da loja enquanto não pago.
+  let pix: { qrCode: string; codigo: string; titulo: string; observacao?: string } | null = null;
+  if (pedido.formaPagamento === "pix_online" && pedido.status === "aguardando_pagamento") {
+    // Consulta direta, caso a notificação do provedor ainda não tenha chegado.
+    let pago = false;
+    if (pedido.pagamentoExternoId && mercadoPagoConfigurado()) {
+      try {
+        pago = (await sincronizarPagamento(pedido.pagamentoExternoId)) === "pago";
+      } catch (erro) {
+        console.error("Falha ao consultar pagamento", erro);
+      }
+    }
+    if (pago) redirect(`/pedido/${codigo}`);
+    const [cobranca] = await db
+      .select()
+      .from(schema.pagamentosOnline)
+      .where(eq(schema.pagamentosOnline.pedidoId, pedido.id))
+      .orderBy(desc(schema.pagamentosOnline.criadoEm))
+      .limit(1);
+    if (cobranca?.qrCode) {
+      pix = {
+        qrCode: cobranca.qrCodeBase64 ? `data:image/png;base64,${cobranca.qrCodeBase64}` : await QRCode.toDataURL(cobranca.qrCode, { margin: 1, width: 440 }),
+        codigo: cobranca.qrCode,
+        titulo: `Pague ${formatarDinheiro(pedido.total)} com Pix`,
+        observacao: "A confirmação é automática.",
+      };
+    }
+  } else if (pedido.formaPagamento === "pix" && pedido.statusPagamento === "pendente" && !pedidoEncerrado(pedido.status as StatusPedido)) {
+    const codigoPix = pixDoPedido(config, pedido.total, pedido.numero);
+    if (codigoPix) {
+      pix = {
+        qrCode: await QRCode.toDataURL(codigoPix, { margin: 1, width: 440 }),
+        codigo: codigoPix,
+        titulo: `Pix · ${formatarDinheiro(pedido.total)}`,
+        observacao: "Se preferir, pague na entrega.",
+      };
+    }
+  }
 
   const status = pedido.status as StatusPedido;
   const posicao = ORDEM.indexOf(status);
@@ -99,6 +142,8 @@ export default async function PaginaPedido({ params }: PageProps<"/pedido/[codig
           </>
         )}
       </section>
+
+      {pix && <PagarPix {...pix} />}
 
       <section className="rounded-2xl border border-borda bg-superficie">
         <ul className="divide-y divide-borda">

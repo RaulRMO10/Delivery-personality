@@ -19,4 +19,4 @@ export const db = drizzle(conexao, { schema, casing: "snake_case" });
 export type Db = typeof db;
 
 // Operadores reexportados para que o app use a mesma instância do drizzle-orm.
-export { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
+export { and, asc, between, count, desc, eq, gt, gte, ilike, inArray, isNotNull, isNull, lt, lte, ne, or, sql, sum } from "drizzle-orm";

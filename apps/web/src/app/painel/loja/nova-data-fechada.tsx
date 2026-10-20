@@ -5,6 +5,7 @@ import { Botao } from "@/components/ui/botao";
 import { Campo } from "@/components/ui/campo";
 import { Aviso } from "@/components/ui/aviso";
 import { adicionarDataFechada, type Resultado } from "./acoes";
+import { aoEnviar } from "@/lib/formulario";
 
 export function NovaDataFechada() {
   const formulario = useRef<HTMLFormElement>(null);
@@ -15,7 +16,7 @@ export function NovaDataFechada() {
   }, null);
 
   return (
-    <form ref={formulario} action={enviar} className="flex flex-col gap-3">
+    <form ref={formulario} onSubmit={aoEnviar(enviar)} className="flex flex-col gap-3">
       <div className="grid gap-3 sm:grid-cols-[12rem_1fr_auto] sm:items-end">
         <Campo rotulo="Data" name="data" type="date" required />
         <Campo rotulo="Motivo (opcional)" name="motivo" maxLength={80} placeholder="Ex.: Feriado" />

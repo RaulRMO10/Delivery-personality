@@ -7,3 +7,4 @@ export * from "./precificacao";
 export * from "./cardapio";
 export * from "./funcionamento";
 export * from "./pedidos";
+export * from "./pix";

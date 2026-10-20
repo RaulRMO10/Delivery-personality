@@ -6,6 +6,7 @@ import { Botao } from "./botao";
 import { BotaoEditar } from "./botao-editar";
 import { Dialogo } from "./dialogo";
 import { Aviso } from "./aviso";
+import { aoEnviar } from "@/lib/formulario";
 
 export type ResultadoFormulario = { ok: true; mensagem?: string } | { ok: false; mensagem: string } | null;
 
@@ -38,7 +39,7 @@ export function FormularioDialogo({ titulo, rotuloEditar, acao, children }: Prop
       )}
       {aberto && (
         <Dialogo titulo={titulo} aoFechar={() => setAberto(false)}>
-          <form action={enviar} className="flex flex-col gap-4">
+          <form onSubmit={aoEnviar(enviar)} className="flex flex-col gap-4">
             {children}
             {resultado && !resultado.ok && <Aviso tipo="erro">{resultado.mensagem}</Aviso>}
             <Botao type="submit" disabled={enviando}>

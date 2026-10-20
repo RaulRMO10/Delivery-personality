@@ -19,6 +19,8 @@ import { produtosParaVenda } from "@/lib/cardapio-publico";
 import { dentroDoLimite, ipDaRequisicao } from "@/lib/limite";
 import { formasAceitas } from "@/lib/pagamentos";
 import { obterUsuario } from "@/lib/sessao";
+import { gerarCobranca } from "@/lib/pagamento-online";
+import { mudarStatusPedido } from "@/lib/pedidos";
 
 const esquema = z
   .object({
@@ -191,6 +193,16 @@ export async function criarPedido(dados: DadosPedido): Promise<ResultadoPedido> 
     await tx.insert(schema.pedidoHistorico).values({ pedidoId: novo!.id, status });
     return novo!;
   });
+
+  if (d.formaPagamento === "pix_online") {
+    try {
+      await gerarCobranca({ id: pedido.id, numero: pedido.numero, total: calculo.total });
+    } catch (erro) {
+      console.error("Falha ao gerar Pix online", erro);
+      await mudarStatusPedido({ pedidoId: pedido.id, para: "cancelado", usuario: null, externo: true, motivo: "Falha ao gerar o Pix." });
+      return { ok: false, mensagem: "Não foi possível gerar o Pix. Escolha outra forma de pagamento." };
+    }
+  }
 
   return { ok: true, codigo, numero: pedido.numero };
 }

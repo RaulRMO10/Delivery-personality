@@ -6,6 +6,7 @@ import { Campo } from "@/components/ui/campo";
 import { Cartao } from "@/components/ui/cartao";
 import { Aviso } from "@/components/ui/aviso";
 import { salvarRegrasEntrega } from "../loja/acoes";
+import { aoEnviar } from "@/lib/formulario";
 
 interface Props {
   pedidoMinimo: string;
@@ -18,7 +19,7 @@ export function FormularioRegras({ pedidoMinimo, freteGratisAcima, aceitaRetirad
   return (
     <Cartao>
       <h2 className="mb-4 text-lg font-bold">Regras</h2>
-      <form action={enviar} className="grid gap-4 sm:grid-cols-2">
+      <form onSubmit={aoEnviar(enviar)} className="grid gap-4 sm:grid-cols-2">
         <Campo rotulo="Pedido mínimo (R$)" name="pedidoMinimo" defaultValue={pedidoMinimo} inputMode="decimal" placeholder="Sem mínimo" />
         <Campo rotulo="Frete grátis acima de (R$)" name="freteGratisAcima" defaultValue={freteGratisAcima} inputMode="decimal" placeholder="Não oferecer" />
         <label className="flex items-center gap-2 sm:col-span-2">

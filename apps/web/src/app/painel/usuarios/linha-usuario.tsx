@@ -8,6 +8,7 @@ import { Cartao } from "@/components/ui/cartao";
 import { Aviso } from "@/components/ui/aviso";
 import { Selo } from "@/components/ui/selo";
 import { alterarBloqueio, alterarPerfil, redefinirSenha } from "./acoes";
+import { aoEnviar } from "@/lib/formulario";
 
 export interface UsuarioLista {
   id: string;
@@ -70,7 +71,7 @@ export function LinhaUsuario({ usuario, ehVoce }: { usuario: UsuarioLista; ehVoc
         )}
 
         {mostrarSenha && (
-          <form action={enviarSenha} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <form onSubmit={aoEnviar(enviarSenha)} className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <input type="hidden" name="usuarioId" value={usuario.id} />
             <div className="flex-1">
               <Campo rotulo="Nova senha provisória" name="senha" type="password" autoComplete="new-password" minLength={10} required />

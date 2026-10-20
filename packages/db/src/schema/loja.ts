@@ -15,6 +15,10 @@ export const configuracaoLoja = pgTable(
     pedidoMinimo: integer().notNull().default(0),
     aceitaRetirada: boolean().notNull().default(true),
     freteGratisAcima: integer(),
+    formasPagamento: text().array().notNull().default(sql`ARRAY['pix','dinheiro','cartao']::text[]`),
+    chavePix: text(),
+    nomeRecebedorPix: text(),
+    cidadePix: text(),
     fechadaManual: boolean().notNull().default(false),
     pausadaAte: timestamp({ withTimezone: true }),
     atualizadoEm: timestamp({ withTimezone: true })

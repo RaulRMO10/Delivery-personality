@@ -9,6 +9,7 @@ import { Campo, Selecao } from "@/components/ui/campo";
 import { Dialogo } from "@/components/ui/dialogo";
 import { Aviso } from "@/components/ui/aviso";
 import { salvarInsumo, type Resultado } from "./acoes";
+import { aoEnviar } from "@/lib/formulario";
 
 interface Props {
   tipo: TipoInsumo;
@@ -38,7 +39,7 @@ export function FormularioInsumo({ tipo, titulo, insumo }: Props) {
       )}
       {aberto && (
         <Dialogo titulo={titulo} aoFechar={() => setAberto(false)}>
-          <form action={enviar} className="flex flex-col gap-4">
+          <form onSubmit={aoEnviar(enviar)} className="flex flex-col gap-4">
             <input type="hidden" name="id" value={insumo?.id ?? ""} />
             <input type="hidden" name="tipo" value={tipo} />
             <Campo rotulo="Nome" name="nome" defaultValue={insumo?.nome} autoComplete="off" required />

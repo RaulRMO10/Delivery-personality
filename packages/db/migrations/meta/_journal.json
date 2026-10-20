@@ -36,6 +36,13 @@
       "when": 1792508969504,
       "tag": "0004_wooden_tombstone",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792509930712,
+      "tag": "0005_mighty_talos",
+      "breakpoints": true
     }
   ]
 }
