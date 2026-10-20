@@ -1,0 +1,2 @@
+ALTER TABLE "configuracao_loja" ADD COLUMN "antecedencia_encomenda_horas" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "configuracao_loja" ADD COLUMN "limite_encomendas_dia" integer;

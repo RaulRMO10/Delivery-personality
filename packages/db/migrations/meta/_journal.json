@@ -57,6 +57,13 @@
       "when": 1792510727626,
       "tag": "0007_watery_black_panther",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792511237412,
+      "tag": "0008_goofy_hellcat",
+      "breakpoints": true
     }
   ]
 }

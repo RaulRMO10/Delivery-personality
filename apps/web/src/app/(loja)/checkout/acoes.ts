@@ -11,10 +11,11 @@ import {
   normalizarTelefone,
   podeOperarLoja,
   statusLoja,
+  validarAgendamento,
   validarTroco,
   type StatusPedido,
 } from "@delivery/core";
-import { and, db, eq, schema } from "@delivery/db";
+import { and, count, db, eq, gte, lt, ne, schema } from "@delivery/db";
 import { calcularStatus, obterConfiguracao } from "@/lib/loja";
 import { produtosParaVenda } from "@/lib/cardapio-publico";
 import { dentroDoLimite, ipDaRequisicao } from "@/lib/limite";
@@ -165,10 +166,24 @@ export async function criarPedido(dados: DadosPedido): Promise<ResultadoPedido> 
   } else {
     agendadoPara = instanteLocal(d.data!, d.hora!);
     if (!agendadoPara) return { ok: false, mensagem: "Data ou hora inválida." };
-    if (agendadoPara.getTime() < agora.getTime() + config.tempoPreparoMin * 60_000) {
-      return { ok: false, mensagem: `Agende com pelo menos ${config.tempoPreparoMin} minutos de antecedência.` };
-    }
-    if (agendadoPara.getTime() > agora.getTime() + 60 * 86_400_000) return { ok: false, mensagem: "Agende com no máximo 60 dias de antecedência." };
+    const inicioDoDia = new Date(`${d.data}T00:00:00-03:00`);
+    const [{ total: agendadosNoDia } = { total: 0 }] = await db
+      .select({ total: count() })
+      .from(schema.pedidos)
+      .where(
+        and(
+          gte(schema.pedidos.agendadoPara, inicioDoDia),
+          lt(schema.pedidos.agendadoPara, new Date(inicioDoDia.getTime() + 86_400_000)),
+          ne(schema.pedidos.status, "cancelado"),
+        ),
+      );
+    const erroAgenda = validarAgendamento(agora, agendadoPara, {
+      tempoPreparoMin: config.tempoPreparoMin,
+      antecedenciaHoras: config.antecedenciaEncomendaHoras,
+      limitePorDia: config.limiteEncomendasDia,
+      agendadosNoDia,
+    });
+    if (erroAgenda) return { ok: false, mensagem: erroAgenda };
     const noHorario = statusLoja(agendadoPara, config.horarios, { fechadaManual: false, pausadaAte: null }, new Set(config.datasFechadas.map((x) => x.data)));
     if (!noHorario.aberta) return { ok: false, mensagem: "A loja não funciona no horário escolhido." };
   }

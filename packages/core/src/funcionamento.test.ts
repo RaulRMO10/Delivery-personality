@@ -7,6 +7,7 @@ import {
   statusLoja,
   taxaEntrega,
   textoParaMinutos,
+  validarAgendamento,
   validarIntervalos,
   type Intervalo,
 } from "./funcionamento";
@@ -91,6 +92,23 @@ describe("texto do status", () => {
     expect(descreverStatus({ aberta: false, motivo: "fora_do_horario", reabreEm: sp("2026-10-20T18:00:00") }, agora)).toBe("Fechada · abre às 18:00");
     expect(descreverStatus({ aberta: false, motivo: "fora_do_horario", reabreEm: sp("2026-10-21T10:00:00") }, agora)).toBe("Fechada · abre amanhã às 10:00");
     expect(descreverStatus({ aberta: false, motivo: "fora_do_horario", reabreEm: sp("2026-10-23T10:00:00") }, agora)).toBe("Fechada · abre sex. às 10:00");
+  });
+});
+
+describe("agendamento", () => {
+  const agora = sp("2026-10-20T12:00:00");
+  const regras = { tempoPreparoMin: 30, antecedenciaHoras: 0, limitePorDia: null, agendadosNoDia: 0 };
+  it("exige o tempo de preparo ou a antecedência de encomenda", () => {
+    expect(validarAgendamento(agora, sp("2026-10-20T12:20:00"), regras)).toBe("Agende com pelo menos 30 minutos de antecedência.");
+    expect(validarAgendamento(agora, sp("2026-10-20T12:30:00"), regras)).toBeNull();
+    const encomenda = { ...regras, antecedenciaHoras: 48 };
+    expect(validarAgendamento(agora, sp("2026-10-21T12:00:00"), encomenda)).toBe("Encomendas com pelo menos 48 horas de antecedência.");
+    expect(validarAgendamento(agora, sp("2026-10-22T12:00:00"), encomenda)).toBeNull();
+  });
+  it("respeita o limite por dia e o máximo de 60 dias", () => {
+    expect(validarAgendamento(agora, sp("2026-10-21T12:00:00"), { ...regras, limitePorDia: 5, agendadosNoDia: 5 })).toBe("Agenda cheia neste dia. Escolha outra data.");
+    expect(validarAgendamento(agora, sp("2026-10-21T12:00:00"), { ...regras, limitePorDia: 5, agendadosNoDia: 4 })).toBeNull();
+    expect(validarAgendamento(agora, sp("2027-01-01T12:00:00"), regras)).not.toBeNull();
   });
 });
 

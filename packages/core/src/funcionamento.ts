@@ -156,6 +156,29 @@ export function descreverStatus(status: StatusLoja, agora: Date): string {
   return status.reabreEm ? `Fechada · abre ${quandoReabre(status.reabreEm, agora)}` : "Fechada";
 }
 
+export interface RegrasAgendamento {
+  tempoPreparoMin: number;
+  /** Antecedência mínima para encomendas, em horas (0 = só o tempo de preparo). */
+  antecedenciaHoras: number;
+  /** Máximo de pedidos agendados por dia (null = sem limite). */
+  limitePorDia: number | null;
+  /** Pedidos já agendados para o mesmo dia. */
+  agendadosNoDia: number;
+}
+
+/** Valida o horário de um pedido agendado; retorna a mensagem de erro ou null. */
+export function validarAgendamento(agora: Date, agendado: Date, r: RegrasAgendamento): string | null {
+  const minutos = Math.max(r.tempoPreparoMin, r.antecedenciaHoras * 60);
+  if (agendado.getTime() < agora.getTime() + minutos * 60_000) {
+    return r.antecedenciaHoras * 60 > r.tempoPreparoMin
+      ? `Encomendas com pelo menos ${r.antecedenciaHoras} horas de antecedência.`
+      : `Agende com pelo menos ${r.tempoPreparoMin} minutos de antecedência.`;
+  }
+  if (agendado.getTime() > agora.getTime() + 60 * 86_400_000) return "Agende com no máximo 60 dias de antecedência.";
+  if (r.limitePorDia !== null && r.agendadosNoDia >= r.limitePorDia) return "Agenda cheia neste dia. Escolha outra data.";
+  return null;
+}
+
 export interface RegrasEntrega {
   freteGratisAcima: number | null;
 }

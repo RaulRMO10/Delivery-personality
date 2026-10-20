@@ -19,6 +19,8 @@ export const configuracaoLoja = pgTable(
     chavePix: text(),
     nomeRecebedorPix: text(),
     cidadePix: text(),
+    antecedenciaEncomendaHoras: integer().notNull().default(0),
+    limiteEncomendasDia: integer(),
     fidelidadeAtiva: boolean().notNull().default(false),
     fidelidadePedidos: integer().notNull().default(10),
     fidelidadeTipo: text({ enum: ["valor", "percentual"] }).notNull().default("valor"),

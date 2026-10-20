@@ -25,6 +25,8 @@ export const obterConfiguracao = cache(async () => {
     chavePix: config?.chavePix ?? null,
     nomeRecebedorPix: config?.nomeRecebedorPix ?? null,
     cidadePix: config?.cidadePix ?? null,
+    antecedenciaEncomendaHoras: config?.antecedenciaEncomendaHoras ?? 0,
+    limiteEncomendasDia: config?.limiteEncomendasDia ?? null,
     fidelidade: {
       ativa: config?.fidelidadeAtiva ?? false,
       pedidos: config?.fidelidadePedidos ?? 10,

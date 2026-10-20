@@ -58,6 +58,7 @@ const DESCRICAO_ACAO: Record<string, string> = {
   "cupom.salvo": "Salvou cupom",
   "cupom.excluido": "Excluiu cupom",
   "fidelidade.salva": "Alterou fidelidade",
+  "agenda.regras_salvas": "Alterou regras de encomenda",
 };
 
 export default async function PaginaAtividades() {
